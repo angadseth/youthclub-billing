@@ -1,9 +1,63 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
+import type { Invoice, Party, Settings } from '../domain/types'
 import { computeTotals, fmtMoneyInt } from '../domain/calc'
 import { useDB } from '../store/db'
+import { invoicePdfBlob } from '../export/files'
+import InvoiceA4 from '../components/InvoiceA4'
 import StatusSelect from '../components/StatusSelect'
 import { Card } from '../components/ui'
+
+/** Renders the bill off-screen, converts to PDF and opens it in a new tab. */
+export function BillPdfButton({ invoice, client, settings }: { invoice: Invoice; client: Party; settings: Settings }) {
+  const [busy, setBusy] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const winRef = useRef<Window | null>(null)
+
+  useEffect(() => {
+    if (!busy || !ref.current) return
+    let cancelled = false
+    const t = setTimeout(async () => {
+      try {
+        const blob = await invoicePdfBlob(ref.current!)
+        if (cancelled) return
+        const url = URL.createObjectURL(blob)
+        if (winRef.current && !winRef.current.closed) winRef.current.location.href = url
+        else window.open(url, '_blank')
+      } catch (e) {
+        winRef.current?.close()
+        alert('PDF failed: ' + (e instanceof Error ? e.message : String(e)))
+      } finally {
+        if (!cancelled) setBusy(false)
+      }
+    }, 250) // let the off-screen render (logo image) settle first
+    return () => { cancelled = true; clearTimeout(t) }
+  }, [busy])
+
+  return (
+    <>
+      <button
+        className="text-xs font-medium text-brand-600 hover:underline cursor-pointer disabled:opacity-50"
+        disabled={busy}
+        onClick={() => {
+          // open the tab inside the click gesture so popup blockers allow it,
+          // then point it at the PDF once generated
+          winRef.current = window.open('about:blank', '_blank')
+          setBusy(true)
+        }}
+      >
+        {busy ? 'Opening…' : 'PDF'}
+      </button>
+      {busy && createPortal(
+        <div ref={ref} style={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm' }} aria-hidden>
+          <InvoiceA4 invoice={invoice} client={client} settings={settings} />
+        </div>,
+        document.body,
+      )}
+    </>
+  )
+}
 
 /** Folder-style view: one folder per client, all their bills inside. */
 export default function Bills() {
@@ -74,7 +128,8 @@ export default function Bills() {
                             </td>
                             <td className="py-2 pr-3 text-right tabular-nums font-semibold">₹ {fmtMoneyInt(t.grandTotal)}</td>
                             <td className="py-2 pr-3"><StatusSelect invoice={inv} /></td>
-                            <td className="py-2 text-right">
+                            <td className="py-2 text-right whitespace-nowrap space-x-3">
+                              <BillPdfButton invoice={inv} client={c} settings={settings} />
                               <Link className="text-xs font-medium text-brand-600 hover:underline" to={`/new?client=${inv.clientId}&month=${inv.periodTo.slice(0, 7)}`}>
                                 Open
                               </Link>

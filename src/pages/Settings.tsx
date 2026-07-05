@@ -23,6 +23,15 @@ export default function SettingsPage() {
   const setCol = (i: number, patch: Partial<ColumnDef>) =>
     setS({ ...s, columns: s.columns.map((c, j) => (j === i ? { ...c, ...patch } : c)) })
 
+  const [dragIdx, setDragIdx] = useState<number | null>(null)
+  const moveCol = (from: number, to: number) => {
+    if (from === to || to < 0 || to >= s.columns.length) return
+    const cols = [...s.columns]
+    const [c] = cols.splice(from, 1)
+    cols.splice(to, 0, c)
+    setS({ ...s, columns: cols })
+  }
+
   const logoInput = useRef<HTMLInputElement>(null)
 
   // GitHub sync
@@ -108,13 +117,29 @@ export default function SettingsPage() {
           <table className="w-full text-xs">
             <thead>
               <tr className="text-left text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
+                <th className="py-1 pr-1 w-6" title="Drag to reorder"></th>
                 <th className="py-1 pr-2">Label</th><th className="py-1 pr-2">Key</th><th className="py-1 pr-2">Width</th>
                 <th className="py-1 pr-2">Type</th><th className="py-1 pr-2">Formula (optional)</th><th className="py-1 pr-2">Total?</th><th />
               </tr>
             </thead>
             <tbody>
               {s.columns.map((c, i) => (
-                <tr key={i} className="border-b border-neutral-100 dark:border-neutral-800/60">
+                <tr
+                  key={i}
+                  className={`border-b border-neutral-100 dark:border-neutral-800/60 ${dragIdx === i ? 'opacity-40' : ''}`}
+                  draggable
+                  onDragStart={() => setDragIdx(i)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => { if (dragIdx !== null) moveCol(dragIdx, i); setDragIdx(null) }}
+                  onDragEnd={() => setDragIdx(null)}
+                >
+                  <td className="py-1 pr-1 cursor-grab select-none text-neutral-400" title="Drag to reorder">
+                    <span className="text-base leading-none">⠿</span>
+                    <span className="ml-1 inline-flex flex-col align-middle">
+                      <button className="text-[9px] leading-none hover:text-brand-600 cursor-pointer" onClick={() => moveCol(i, i - 1)}>▲</button>
+                      <button className="text-[9px] leading-none hover:text-brand-600 cursor-pointer" onClick={() => moveCol(i, i + 1)}>▼</button>
+                    </span>
+                  </td>
                   <td className="py-1 pr-2"><input className={inputCls + ' !py-1'} value={c.label} onChange={(e) => setCol(i, { label: e.target.value })} /></td>
                   <td className="py-1 pr-2"><input className={inputCls + ' !py-1 max-w-28'} value={c.key} onChange={(e) => setCol(i, { key: e.target.value.replace(/\W/g, '') })} /></td>
                   <td className="py-1 pr-2"><input type="number" className={inputCls + ' !py-1 max-w-16'} value={c.width} onChange={(e) => setCol(i, { width: Number(e.target.value) || 1 })} /></td>
@@ -139,6 +164,7 @@ export default function SettingsPage() {
         </button>
         <div className="mt-3 rounded-lg bg-neutral-50 dark:bg-neutral-800/50 p-3 text-xs text-neutral-600 dark:text-neutral-300 space-y-1">
           <div className="font-semibold">How formulas work</div>
+          <div>Drag the ⠿ handle (or use ▲▼) to reorder columns — the invoice follows this order left to right.</div>
           <div>Use column keys as variables with + - * / and parentheses. Available keys: <span className="font-mono">{s.columns.map((c) => c.key).join(', ')}</span></div>
           <div>Defaults: <span className="font-mono">ratePerDay = basicSalary / days</span> · <span className="font-mono">totalDays = attend + holidays</span> · <span className="font-mono">amount = ratePerDay * totalDays</span></div>
           <div>Columns with a formula are calculated automatically — they never appear as inputs on the New Invoice form. Adding or removing columns auto-adjusts the invoice layout (widths + font size).</div>

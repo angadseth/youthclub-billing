@@ -71,6 +71,7 @@ export interface Invoice {
   feesPct: number
   status: InvoiceStatus
   paidOn?: string
+  updatedAt?: string // ISO datetime of last save
   notes?: string
 }
 

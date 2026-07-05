@@ -67,7 +67,8 @@ export function deleteClient(id: string) {
   persist()
 }
 
-export function saveInvoice(inv: Invoice) {
+export function saveInvoice(invIn: Invoice) {
+  const inv = { ...invIn, updatedAt: new Date().toISOString() }
   const others = state.invoices.filter((i) => i.id !== inv.id)
   state = { ...state, invoices: [...others, inv].sort((a, b) => a.no.localeCompare(b.no)) }
   persist()

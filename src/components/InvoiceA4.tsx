@@ -216,7 +216,7 @@ export default function InvoiceA4({ invoice, client, settings }: Props) {
                     {invoice.notes && <div style={{ fontSize: '2.6mm', color: '#555', marginTop: '1mm' }}>{invoice.notes}</div>}
                   </div>
                   <div style={{ flex: 1, textAlign: 'center' }}>
-                    <div style={{ fontWeight: 700, fontSize: '3.2mm', marginBottom: '26mm' }}>Authorised Sign</div>
+                    <div style={{ fontWeight: 700, fontSize: '3.2mm', marginBottom: '34mm' }}>Authorised Sign</div>
                     <div style={{ fontWeight: 700, fontSize: '3mm', color: ORANGE_DARK, borderBottom: `0.6mm solid ${ORANGE_DARK}`, display: 'inline-block', paddingBottom: '0.6mm' }}>
                       {business.name.charAt(0) + business.name.slice(1).toLowerCase()}{' '}
                       {business.subName.split(' ').map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(' ')}
