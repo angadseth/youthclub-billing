@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 import type { Invoice, Party, Settings } from '../domain/types'
-import { computeRow, computeTotals, fmtMoney, fmtMoneyInt } from '../domain/calc'
+import { computeRow, computeTotals, fmtMoney } from '../domain/calc'
 import { amountInWordsINR } from '../domain/words'
 import { splitRowsIntoPages } from '../domain/paginate'
 import defaultLogo from '../assets/logo.png'
@@ -11,12 +11,12 @@ const ORANGE_DARK = '#b06420'
 const INK = '#1f2430'
 const PEACH = '#f8ecdd'
 
-export const ROWS_FIRST_PAGE = 12
-export const ROWS_NEXT_PAGE = 16
-export const ROWS_LAST_PAGE = 8 // last page also holds totals/sign block
+// every page is a COMPLETE invoice sheet (header + totals + sign + footer),
+// so the row capacity per page is small and constant
+export const ROWS_PER_PAGE = 6
 
 export function invoicePageCount(rowCount: number): number {
-  return splitRowsIntoPages(Array(rowCount).fill(0), ROWS_FIRST_PAGE, ROWS_NEXT_PAGE, ROWS_LAST_PAGE).length
+  return Math.max(1, Math.ceil(rowCount / ROWS_PER_PAGE))
 }
 
 export function fmtDate(iso: string): string {
@@ -27,7 +27,7 @@ export function fmtDate(iso: string): string {
 }
 
 function Logo({ dataUrl }: { dataUrl?: string }) {
-  return <img src={dataUrl || defaultLogo} alt="logo" style={{ width: '25mm', height: '25mm', objectFit: 'contain' }} />
+  return <img src={dataUrl || defaultLogo} alt="logo" style={{ width: '34mm', height: '34mm', objectFit: 'contain' }} />
 }
 
 interface Props {
@@ -41,10 +41,10 @@ export default function InvoiceA4({ invoice, client, settings }: Props) {
   const { columns, business } = settings
   const totals = computeTotals(invoice, columns)
   const computedRows = invoice.rows.map((r) => computeRow(r, columns))
-  const pages = splitRowsIntoPages(computedRows, ROWS_FIRST_PAGE, ROWS_NEXT_PAGE, ROWS_LAST_PAGE)
+  const pages = splitRowsIntoPages(computedRows, ROWS_PER_PAGE, ROWS_PER_PAGE)
   const totalWeight = columns.reduce((a, c) => a + c.width, 0)
   // auto text scale: 13 default columns look right at 2.5mm; shrink as columns grow
-  const tableFont = Math.min(2.5, 2.5 * (86 / totalWeight))
+  const tableFont = Math.min(2.9, 2.9 * (86 / totalWeight))
 
   const [qr, setQr] = useState('')
   useEffect(() => {
@@ -65,7 +65,6 @@ export default function InvoiceA4({ invoice, client, settings }: Props) {
   return (
     <>
       {pages.map((pageRows, pi) => {
-        const isLast = pi === pages.length - 1
         return (
           <div key={pi} className="a4page" style={{ display: 'flex', flexDirection: 'column', height: '297mm', overflow: 'hidden', fontFamily: 'Inter, "Segoe UI", sans-serif' }}>
             {/* top bar */}
@@ -137,7 +136,7 @@ export default function InvoiceA4({ invoice, client, settings }: Props) {
               </thead>
               <tbody>
                 {pageRows.map((row, ri) => (
-                  <tr key={ri} style={{ borderBottom: '0.2mm solid #eee4d6', height: '11mm' }}>
+                  <tr key={ri} style={{ borderBottom: '0.2mm solid #eee4d6', height: '10mm' }}>
                     {columns.map((c) => (
                       <td key={c.key} style={{ ...cellStyle(c.align), fontWeight: c.key === 'description' || c.key === 'amount' ? 700 : 400 }}>
                         {c.type === 'date' ? fmtDate(String(row[c.key] ?? '')) : c.type === 'number' && c.key === 'amount' ? fmtMoney(Number(row[c.key]) || 0) : String(row[c.key] ?? '')}
@@ -145,7 +144,7 @@ export default function InvoiceA4({ invoice, client, settings }: Props) {
                     ))}
                   </tr>
                 ))}
-                {isLast && (
+                {(
                   <tr style={{ background: PEACH, fontWeight: 700, height: '9mm' }}>
                     {columns.map((c, i) => (
                       <td key={c.key} style={cellStyle(c.align)}>
@@ -159,7 +158,7 @@ export default function InvoiceA4({ invoice, client, settings }: Props) {
 
             <div style={{ flex: 1 }} />
 
-            {isLast && (
+            {(
               <>
                 {/* payment details + totals */}
                 <div style={{ display: 'flex', padding: '0 0mm', gap: '0mm' }}>
@@ -201,7 +200,7 @@ export default function InvoiceA4({ invoice, client, settings }: Props) {
 
                 {/* grand total band */}
                 <div style={{ background: ORANGE_DARK, color: '#fff', display: 'flex', justifyContent: 'space-between', padding: '2mm 8mm', fontWeight: 800, fontSize: '3.6mm' }}>
-                  <span>Grand Total :</span><span>{fmtMoneyInt(totals.grandTotal)}</span>
+                  <span>Grand Total :</span><span>{fmtMoney(totals.grandTotal)}</span>
                 </div>
                 <div style={{ padding: '2.5mm 8mm', fontStyle: 'italic', fontWeight: 700, fontSize: '3mm', color: ORANGE_DARK }}>
                   Amount in Words : &nbsp;{amountInWordsINR(totals.grandTotal)}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useSearchParams } from 'react-router-dom'
 import type { Invoice, Party, TaxMode } from '../domain/types'
 import { computeTotals, fmtMoneyInt } from '../domain/calc'
@@ -220,10 +221,14 @@ export default function NewInvoice() {
             </div>
           </div>
 
-          {/* full-scale hidden copy for print + PDF capture */}
-          <div id="print-root" ref={printRef} style={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm' }} aria-hidden>
-            <InvoiceA4 invoice={draft} client={client} settings={settings} />
-          </div>
+          {/* full-scale hidden copy for print + PDF capture; portaled to <body> so
+              the app layout contributes zero pages when printing */}
+          {createPortal(
+            <div id="print-root" ref={printRef} style={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm' }} aria-hidden>
+              <InvoiceA4 invoice={draft} client={client} settings={settings} />
+            </div>,
+            document.body,
+          )}
         </>
       )}
     </div>

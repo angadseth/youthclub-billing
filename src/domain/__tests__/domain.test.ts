@@ -34,9 +34,12 @@ describe('calc — reference invoice (YouthClub_Invoice_v2)', () => {
     expect(r.totalDays).toBe(27)
     expect(r.amount).toBe(1512)
   })
-  it('0% GST prints no tax lines', () => {
+  it('0% GST still prints tax lines with 0.00', () => {
     const t = computeTotals({ rows: [refRow], taxMode: 'CGST_SGST', taxRate: 0, feesPct: 10 }, columns)
-    expect(t.taxLines).toEqual([])
+    expect(t.taxLines).toEqual([
+      { label: 'SGST @ 0%', amount: 0 },
+      { label: 'CGST @ 0%', amount: 0 },
+    ])
     expect(t.grandTotal).toBe(1663)
   })
   it('matches every total on the reference PDF', () => {

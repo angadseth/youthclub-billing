@@ -31,7 +31,8 @@ export async function invoicePdfBlob(node: HTMLElement): Promise<Blob> {
   for (let i = 0; i < pages.length; i++) {
     const canvas = await domToCanvas(pages[i], { scale: 2.2, backgroundColor: '#ffffff' })
     if (i > 0) pdf.addPage('a4', 'portrait')
-    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 210, 297)
+    // small white margin so the sheet doesn't touch the PDF edges
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 3, 3, 204, 291)
   }
   return pdf.output('blob')
 }

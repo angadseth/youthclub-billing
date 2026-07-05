@@ -36,10 +36,10 @@ body {
 }
 
 @media print {
-  body * { visibility: hidden; }
-  #print-root, #print-root * { visibility: visible; }
-  /* !important beats the inline off-screen positioning used on screen */
-  #print-root { position: absolute !important; left: 0 !important; top: 0 !important; width: 210mm !important; }
+  /* the app takes zero space in print — only the portaled #print-root exists,
+     so a 1-page invoice prints exactly 1 page (no blank ghost pages) */
+  .app-chrome { display: none !important; }
+  #print-root { position: static !important; left: 0 !important; top: 0 !important; width: 210mm !important; }
   .a4page { box-shadow: none; margin: 0; page-break-after: always; }
   .a4page:last-child { page-break-after: auto; }
   @page { size: A4; margin: 0; }
