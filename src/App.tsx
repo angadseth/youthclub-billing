@@ -108,7 +108,7 @@ export default function App() {
         </main>
 
         <footer className="border-t border-neutral-200 dark:border-neutral-800 py-3 text-center text-xs text-neutral-500 dark:text-neutral-400">
-          Designed &amp; built by <span className="font-semibold text-neutral-700 dark:text-neutral-200">Angad Jangir</span> · IIT Madras
+          Designed &amp; built by <span className="font-semibold text-neutral-700 dark:text-neutral-200">मुंशी Munshi Labs</span> · IIT Madras
         </footer>
       </div>
     </HashRouter>

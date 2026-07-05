@@ -130,7 +130,7 @@ export default function Splash({ onDone }: { onDone: () => void }) {
       </button>
 
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] text-neutral-500">
-        Designed &amp; built by <span className="font-semibold text-neutral-300">Angad Jangir</span> · IIT Madras
+        Designed &amp; built by <span className="font-semibold text-neutral-300">मुंशी Munshi Labs</span> · IIT Madras
       </div>
     </div>
   )
