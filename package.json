@@ -1,13 +1,32 @@
 {
-  "name": "app",
+  "name": "youthclub-billing",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.5.0",
+  "description": "YouthClub Invoice Software",
+  "author": "Angad Jangir",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:desktop": "tsc -b && vite build --base ./ --outDir dist-app",
+    "desktop": "electron .",
+    "dist:desktop": "electron-builder --win",
     "lint": "oxlint",
     "preview": "vite preview"
+  },
+  "build": {
+    "appId": "in.angadjangir.youthclub-billing",
+    "productName": "YouthClub Billing",
+    "directories": { "output": "release" },
+    "files": ["dist-app/**", "electron/**", "build-res/**"],
+    "win": { "target": ["nsis"], "icon": "build-res/icon.png" },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "YouthClub-Billing-Setup-${version}.${ext}"
+    }
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.2",
@@ -28,6 +47,8 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
+    "electron": "^43.0.0",
+    "electron-builder": "^26.15.3",
     "oxlint": "^1.71.0",
     "playwright": "^1.61.1",
     "typescript": "~6.0.2",

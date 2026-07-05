@@ -7,6 +7,7 @@ import Register from './pages/Register'
 import Bills from './pages/Bills'
 import Clients from './pages/Clients'
 import SettingsPage from './pages/Settings'
+import Splash from './components/Splash'
 import { onSyncStatus, type SyncStatus } from './store/github'
 
 const nav = [
@@ -38,6 +39,7 @@ function SyncBadge() {
 }
 
 export default function App() {
+  const [splash, setSplash] = useState(true)
   const [dark, setDark] = useState(() => localStorage.getItem('ycb_theme') === 'dark')
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark)
@@ -46,6 +48,7 @@ export default function App() {
 
   return (
     <HashRouter>
+      {splash && <Splash onDone={() => setSplash(false)} />}
       <div className="app-chrome min-h-screen flex flex-col">
         <header className="sticky top-0 z-20 border-b border-neutral-200 dark:border-neutral-800 bg-white/90 dark:bg-neutral-950/90 backdrop-blur">
           <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">

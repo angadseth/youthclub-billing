@@ -43,5 +43,8 @@ body {
   /* 3mm breathing room on paper: shrink the 210mm sheet slightly to fit inside the margins */
   .a4page { box-shadow: none; margin: 0; page-break-after: always; zoom: 0.968; }
   .a4page:last-child { page-break-after: auto; }
+  /* B&W printing: browsers drop the dark/orange backgrounds, which would leave
+     white text invisible on white paper — force every letter to solid black */
+  .a4page, .a4page * { color: #000 !important; }
   @page { size: A4; margin: 3mm; }
 }

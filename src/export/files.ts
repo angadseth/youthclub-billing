@@ -1,8 +1,15 @@
 import type { Invoice, Party, Settings } from '../domain/types'
 import { computeRow, computeTotals } from '../domain/calc'
 import { amountInWordsINR } from '../domain/words'
+import { desktop } from '../store/desktop'
 
 export function download(blob: Blob, filename: string) {
+  const d = desktop
+  if (d) {
+    // desktop app: write into Documents\YouthClub Billing\Exports and reveal in Explorer
+    blob.arrayBuffer().then((buf) => d.saveFile(filename, buf))
+    return
+  }
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url

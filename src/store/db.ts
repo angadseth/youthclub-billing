@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import type { Invoice, Party, Settings } from '../domain/types'
 import { defaultColumns, defaultSettings, seedClients } from './seed'
+import { desktop } from './desktop'
 import { enqueue, getFile, listDir } from './github'
 
 export interface AppState {
@@ -13,7 +14,8 @@ const STATE_KEY = 'ycb_state'
 
 function load(): AppState {
   try {
-    const raw = localStorage.getItem(STATE_KEY)
+    // desktop app: the data.json file in Documents\YouthClub Billing is the source of truth
+    const raw = desktop?.initialState ?? localStorage.getItem(STATE_KEY)
     if (raw) {
       const s = JSON.parse(raw) as AppState
       // migrate: old default column set (pre attendance-formula chain) → new defaults
@@ -32,7 +34,9 @@ let state: AppState = load()
 const listeners = new Set<() => void>()
 
 function persist() {
-  localStorage.setItem(STATE_KEY, JSON.stringify(state))
+  const json = JSON.stringify(state)
+  localStorage.setItem(STATE_KEY, json)
+  desktop?.saveState(json)
   listeners.forEach((fn) => fn())
 }
 
