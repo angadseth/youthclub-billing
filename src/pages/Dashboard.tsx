@@ -32,7 +32,9 @@ export default function Dashboard() {
   const pal = useThemePal()
 
   const data = useMemo(() => {
-    const rows = invoices.map((inv) => ({ inv, t: computeTotals(inv, settings.columns) }))
+    // drafts are work-in-progress: excluded from every money figure/graph
+    const draftCount = invoices.filter((i) => i.status === 'DRAFT').length
+    const rows = invoices.filter((i) => i.status !== 'DRAFT').map((inv) => ({ inv, t: computeTotals(inv, settings.columns) }))
     const now = new Date()
     const thisMonth = now.toISOString().slice(0, 7)
     const fy = fyLabel(now)
@@ -66,6 +68,7 @@ export default function Dashboard() {
 
     return {
       fy,
+      draftCount,
       monthBilled: monthRows.reduce((a, r) => a + r.t.grandTotal, 0),
       monthCount: monthRows.length,
       outstanding: unpaid.reduce((a, r) => a + r.t.grandTotal, 0),
@@ -100,7 +103,7 @@ export default function Dashboard() {
 
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
         <StatTile accent label="This month billing" value={inr(data.monthBilled)} sub={`${data.monthCount} / ${clients.length} bills created`} />
-        <StatTile label="Payment due" value={inr(data.outstanding)} sub={`${data.unpaidCount} unpaid bills`} />
+        <StatTile label="Payment due" value={inr(data.outstanding)} sub={`${data.unpaidCount} unpaid${data.draftCount ? ` · ${data.draftCount} draft` : ''}`} />
         <StatTile label={`FY ${data.fy} total`} value={inr(data.fyTotal)} />
         <StatTile label="GST collected (FY)" value={inr(Math.round(data.gstCollected))} />
         <StatTile label="Clients" value={String(clients.length)} sub="Add/edit on Clients page" />

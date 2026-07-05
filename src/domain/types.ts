@@ -1,5 +1,7 @@
 export type TaxMode = 'CGST_SGST' | 'IGST' | 'NONE'
 
+export type InvoiceStatus = 'DRAFT' | 'UNPAID' | 'PAID'
+
 export interface ColumnDef {
   key: string
   label: string
@@ -67,7 +69,7 @@ export interface Invoice {
   taxMode: TaxMode
   taxRate: number
   feesPct: number
-  status: 'PAID' | 'UNPAID'
+  status: InvoiceStatus
   paidOn?: string
   notes?: string
 }

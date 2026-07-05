@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { computeTotals, fmtMoneyInt } from '../domain/calc'
-import { saveInvoice, useDB } from '../store/db'
+import { useDB } from '../store/db'
+import StatusSelect from '../components/StatusSelect'
 import { exportRegisterXlsx } from '../export/files'
 import { Card, btnGhost, inputCls } from '../components/ui'
 
@@ -70,23 +71,7 @@ export default function Register() {
                       <td className="py-2 pr-3">{client?.name ?? inv.clientId}</td>
                       <td className="py-2 pr-3 text-right tabular-nums font-semibold">₹ {fmtMoneyInt(t.grandTotal)}</td>
                       <td className="py-2 pr-3">
-                        <button
-                          className={`rounded-full px-2.5 py-1 text-xs font-semibold cursor-pointer ${
-                            inv.status === 'PAID'
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
-                              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
-                          }`}
-                          title="Click to toggle status"
-                          onClick={() =>
-                            saveInvoice({
-                              ...inv,
-                              status: inv.status === 'PAID' ? 'UNPAID' : 'PAID',
-                              paidOn: inv.status === 'PAID' ? undefined : new Date().toISOString().slice(0, 10),
-                            })
-                          }
-                        >
-                          {inv.status === 'PAID' ? 'Paid' : 'Due'}
-                        </button>
+                        <StatusSelect invoice={inv} />
                         {od > 0 && <span className="ml-2 text-xs font-medium text-red-500">overdue {od}d</span>}
                       </td>
                       <td className="py-2 text-right">

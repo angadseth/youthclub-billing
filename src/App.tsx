@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard'
 import NewInvoice from './pages/NewInvoice'
 import Bulk from './pages/Bulk'
 import Register from './pages/Register'
+import Bills from './pages/Bills'
 import Clients from './pages/Clients'
 import SettingsPage from './pages/Settings'
 import { onSyncStatus, type SyncStatus } from './store/github'
@@ -12,6 +13,7 @@ const nav = [
   { to: '/', label: 'Dashboard' },
   { to: '/new', label: 'New Invoice' },
   { to: '/bulk', label: 'Bulk' },
+  { to: '/bills', label: 'Bills' },
   { to: '/register', label: 'Register' },
   { to: '/clients', label: 'Clients' },
   { to: '/settings', label: 'Settings' },
@@ -95,6 +97,7 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/new" element={<NewInvoice />} />
             <Route path="/bulk" element={<Bulk />} />
+            <Route path="/bills" element={<Bills />} />
             <Route path="/register" element={<Register />} />
             <Route path="/clients" element={<Clients />} />
             <Route path="/settings" element={<SettingsPage />} />

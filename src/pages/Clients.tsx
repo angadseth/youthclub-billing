@@ -23,7 +23,7 @@ export default function Clients() {
   const ledger = (id: string) => {
     const list = invoices.filter((i) => i.clientId === id)
     const totals = list.map((i) => ({ inv: i, t: computeTotals(i, settings.columns) }))
-    const billed = totals.reduce((a, x) => a + x.t.grandTotal, 0)
+    const billed = totals.filter((x) => x.inv.status !== 'DRAFT').reduce((a, x) => a + x.t.grandTotal, 0)
     const paid = totals.filter((x) => x.inv.status === 'PAID').reduce((a, x) => a + x.t.grandTotal, 0)
     return { list: totals, billed, paid, outstanding: billed - paid }
   }
@@ -114,7 +114,7 @@ export default function Clients() {
                   {l.list.map(({ inv, t }) => (
                     <div key={inv.id} className="flex justify-between">
                       <span>{inv.no} · {inv.date}</span>
-                      <span className={`tabular-nums font-medium ${inv.status === 'PAID' ? 'text-green-600' : 'text-amber-600'}`}>₹{fmtMoneyInt(t.grandTotal)} · {inv.status === 'PAID' ? 'Paid' : 'Due'}</span>
+                      <span className={`tabular-nums font-medium ${inv.status === 'PAID' ? 'text-green-600' : 'text-amber-600'}`}>₹{fmtMoneyInt(t.grandTotal)} · {inv.status === 'PAID' ? 'Paid' : inv.status === 'DRAFT' ? 'Draft' : 'Due'}</span>
                     </div>
                   ))}
                 </div>
