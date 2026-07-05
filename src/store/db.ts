@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import type { Invoice, Party, Settings } from '../domain/types'
-import { defaultSettings, seedClients } from './seed'
+import { defaultColumns, defaultSettings, seedClients } from './seed'
 import { enqueue, getFile, listDir } from './github'
 
 export interface AppState {
@@ -16,6 +16,9 @@ function load(): AppState {
     const raw = localStorage.getItem(STATE_KEY)
     if (raw) {
       const s = JSON.parse(raw) as AppState
+      // migrate: old default column set (pre attendance-formula chain) → new defaults
+      const amount = s.settings?.columns?.find((c) => c.key === 'amount')
+      if (amount?.formula === 'ratePerDay * attend') s.settings.columns = defaultColumns
       // tolerate older saves missing newer settings fields
       return { ...s, settings: { ...defaultSettings, ...s.settings, business: { ...defaultSettings.business, ...s.settings.business } } }
     }

@@ -79,7 +79,9 @@ export function computeTotals(
   const subTotal = round2(basicTotal + fees)
 
   const taxLines: TaxLine[] = []
-  if (inv.taxMode === 'CGST_SGST') {
+  if (inv.taxRate <= 0) {
+    // 0% → no tax lines printed at all
+  } else if (inv.taxMode === 'CGST_SGST') {
     const half = inv.taxRate / 2
     const amt = round2((subTotal * half) / 100)
     taxLines.push({ label: `SGST @ ${fmtPct(half)}%`, amount: amt })

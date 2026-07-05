@@ -10,7 +10,7 @@ import { onSyncStatus, type SyncStatus } from './store/github'
 
 const nav = [
   { to: '/', label: 'Dashboard' },
-  { to: '/new', label: 'Naya Bill' },
+  { to: '/new', label: 'New Invoice' },
   { to: '/bulk', label: 'Bulk' },
   { to: '/register', label: 'Register' },
   { to: '/clients', label: 'Clients' },

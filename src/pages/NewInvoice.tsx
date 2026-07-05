@@ -4,7 +4,7 @@ import type { Invoice, Party, TaxMode } from '../domain/types'
 import { computeTotals, fmtMoneyInt } from '../domain/calc'
 import { nextInvoiceNo } from '../domain/invoiceNo'
 import { saveInvoice, useDB } from '../store/db'
-import InvoiceA4 from '../components/InvoiceA4'
+import InvoiceA4, { invoicePageCount } from '../components/InvoiceA4'
 import ExportBar from '../components/ExportBar'
 import { Card, Field, btnGhost, btnPrimary, inputCls, monthRange } from '../components/ui'
 
@@ -104,19 +104,19 @@ export default function NewInvoice() {
       <div className="flex flex-wrap items-end gap-3">
         <Field label="Client / Party">
           <select className={inputCls + ' min-w-56'} value={clientId} onChange={(e) => setClientId(e.target.value)}>
-            <option value="">— Client chuno —</option>
+            <option value="">— Select client —</option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
         </Field>
-        <Field label="Month / Mahina">
+        <Field label="Billing month">
           <input type="month" className={inputCls} value={month} onChange={(e) => setMonth(e.target.value)} />
         </Field>
         {draft && client && (
           <>
             <button className={btnGhost} onClick={copyLastMonth}>Copy last month</button>
-            <button className={btnPrimary} onClick={save}>Save karo</button>
+            <button className={btnPrimary} onClick={save}>Save</button>
             {savedAt > 0 && <span className="text-xs text-green-600 dark:text-green-400 font-medium">Saved ✓</span>}
           </>
         )}
@@ -124,7 +124,7 @@ export default function NewInvoice() {
 
       {!draft || !client ? (
         <Card>
-          <p className="text-sm text-neutral-500">Client aur month chuno — invoice yahi ban jayega, right side live preview ke saath.</p>
+          <p className="text-sm text-neutral-500">Select a client and month — the invoice builds here with a live preview on the right.</p>
         </Card>
       ) : (
         <>
@@ -154,6 +154,11 @@ export default function NewInvoice() {
                   <Field label={`${settings.feesLabel} %`}>
                     <input type="number" className={inputCls} value={draft.feesPct} onChange={(e) => setDraft({ ...draft, feesPct: Number(e.target.value) || 0 })} />
                   </Field>
+                  {draft.taxMode !== 'NONE' && (
+                    <Field label="GST % (total — 0 hides tax lines)">
+                      <input type="number" className={inputCls} value={draft.taxRate} onChange={(e) => setDraft({ ...draft, taxRate: Number(e.target.value) || 0 })} />
+                    </Field>
+                  )}
                 </div>
               </Card>
 
@@ -164,7 +169,7 @@ export default function NewInvoice() {
                       <div className="mb-2 flex items-center justify-between">
                         <span className="text-xs font-semibold text-neutral-500">Row {ri + 1}</span>
                         {draft.rows.length > 1 && (
-                          <button className="text-xs text-red-500 hover:underline cursor-pointer" onClick={() => removeRow(ri)}>Hatao</button>
+                          <button className="text-xs text-red-500 hover:underline cursor-pointer" onClick={() => removeRow(ri)}>Remove</button>
                         )}
                       </div>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -185,7 +190,7 @@ export default function NewInvoice() {
               </Card>
 
               <Card title="Notes (optional)">
-                <input className={inputCls} value={draft.notes ?? ''} placeholder="Invoice pe extra note" onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
+                <input className={inputCls} value={draft.notes ?? ''} placeholder="Extra note printed on the invoice" onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
               </Card>
 
               {totals && (
@@ -208,7 +213,7 @@ export default function NewInvoice() {
             <div className={`space-y-3 ${tab === 'form' ? 'hidden lg:block' : ''}`}>
               <ExportBar getPrintNode={() => printRef.current} invoice={draft} client={client} settings={settings} grandTotal={totals?.grandTotal ?? 0} />
               <div ref={shellRef} className="overflow-hidden">
-                <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: A4_PX, height: scale * 1130 * (draft.rows.length <= 8 ? 1 : 1 + Math.ceil((draft.rows.length - 8) / 16)) }}>
+                <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: A4_PX, height: scale * 1130 * invoicePageCount(draft.rows.length) }}>
                   <InvoiceA4 invoice={draft} client={client} settings={settings} />
                 </div>
               </div>

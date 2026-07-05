@@ -4,14 +4,20 @@ import type { Invoice, Party, Settings } from '../domain/types'
 import { computeRow, computeTotals, fmtMoney, fmtMoneyInt } from '../domain/calc'
 import { amountInWordsINR } from '../domain/words'
 import { splitRowsIntoPages } from '../domain/paginate'
+import defaultLogo from '../assets/logo.png'
 
 const ORANGE = '#c87b2a'
 const ORANGE_DARK = '#b06420'
 const INK = '#1f2430'
 const PEACH = '#f8ecdd'
 
-const ROWS_FIRST_PAGE = 8
-const ROWS_NEXT_PAGE = 16
+export const ROWS_FIRST_PAGE = 12
+export const ROWS_NEXT_PAGE = 16
+export const ROWS_LAST_PAGE = 8 // last page also holds totals/sign block
+
+export function invoicePageCount(rowCount: number): number {
+  return splitRowsIntoPages(Array(rowCount).fill(0), ROWS_FIRST_PAGE, ROWS_NEXT_PAGE, ROWS_LAST_PAGE).length
+}
 
 export function fmtDate(iso: string): string {
   if (!iso) return ''
@@ -21,17 +27,7 @@ export function fmtDate(iso: string): string {
 }
 
 function Logo({ dataUrl }: { dataUrl?: string }) {
-  if (dataUrl) return <img src={dataUrl} alt="logo" style={{ width: '24mm', height: '24mm', objectFit: 'contain' }} />
-  return (
-    <svg viewBox="0 0 100 100" style={{ width: '24mm', height: '24mm' }}>
-      <circle cx="50" cy="50" r="48" fill="#7a1f1f" />
-      <circle cx="50" cy="50" r="42" fill="#f5c542" />
-      <circle cx="50" cy="50" r="34" fill="#7a1f1f" />
-      <text x="50" y="60" textAnchor="middle" fontSize="30" fontWeight="800" fill="#f5c542" fontFamily="Georgia, serif">
-        YC
-      </text>
-    </svg>
-  )
+  return <img src={dataUrl || defaultLogo} alt="logo" style={{ width: '25mm', height: '25mm', objectFit: 'contain' }} />
 }
 
 interface Props {
@@ -45,7 +41,7 @@ export default function InvoiceA4({ invoice, client, settings }: Props) {
   const { columns, business } = settings
   const totals = computeTotals(invoice, columns)
   const computedRows = invoice.rows.map((r) => computeRow(r, columns))
-  const pages = splitRowsIntoPages(computedRows, ROWS_FIRST_PAGE, ROWS_NEXT_PAGE)
+  const pages = splitRowsIntoPages(computedRows, ROWS_FIRST_PAGE, ROWS_NEXT_PAGE, ROWS_LAST_PAGE)
   const totalWeight = columns.reduce((a, c) => a + c.width, 0)
   // auto text scale: 13 default columns look right at 2.5mm; shrink as columns grow
   const tableFont = Math.min(2.5, 2.5 * (86 / totalWeight))
@@ -129,7 +125,7 @@ export default function InvoiceA4({ invoice, client, settings }: Props) {
             </div>
 
             {/* service table */}
-            <table style={{ width: 'calc(100% - 0mm)', borderCollapse: 'collapse', marginTop: '1.5mm' }}>
+            <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', marginTop: '1.5mm' }}>
               <thead>
                 <tr style={{ background: ORANGE_DARK, color: '#fff' }}>
                   {columns.map((c) => (
@@ -197,15 +193,15 @@ export default function InvoiceA4({ invoice, client, settings }: Props) {
                         <span>{t.label}</span><span>{fmtMoney(t.amount)}</span>
                       </div>
                     ))}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1.4mm 0', fontStyle: 'italic', color: '#555' }}>
+                      <span>Round Off</span><span>{totals.roundOff.toFixed(2)}</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* grand total band */}
                 <div style={{ background: ORANGE_DARK, color: '#fff', display: 'flex', justifyContent: 'space-between', padding: '2mm 8mm', fontWeight: 800, fontSize: '3.6mm' }}>
                   <span>Grand Total :</span><span>{fmtMoneyInt(totals.grandTotal)}</span>
-                </div>
-                <div style={{ background: '#f5f2ec', display: 'flex', justifyContent: 'space-between', padding: '1.6mm 8mm', fontStyle: 'italic', fontSize: '2.9mm', color: '#555' }}>
-                  <span>Round Off</span><span>{totals.roundOff.toFixed(2)}</span>
                 </div>
                 <div style={{ padding: '2.5mm 8mm', fontStyle: 'italic', fontWeight: 700, fontSize: '3mm', color: ORANGE_DARK }}>
                   Amount in Words : &nbsp;{amountInWordsINR(totals.grandTotal)}
@@ -221,7 +217,7 @@ export default function InvoiceA4({ invoice, client, settings }: Props) {
                     {invoice.notes && <div style={{ fontSize: '2.6mm', color: '#555', marginTop: '1mm' }}>{invoice.notes}</div>}
                   </div>
                   <div style={{ flex: 1, textAlign: 'center' }}>
-                    <div style={{ fontWeight: 700, fontSize: '3.2mm', marginBottom: '14mm' }}>Authorised Sign</div>
+                    <div style={{ fontWeight: 700, fontSize: '3.2mm', marginBottom: '26mm' }}>Authorised Sign</div>
                     <div style={{ fontWeight: 700, fontSize: '3mm', color: ORANGE_DARK, borderBottom: `0.6mm solid ${ORANGE_DARK}`, display: 'inline-block', paddingBottom: '0.6mm' }}>
                       {business.name.charAt(0) + business.name.slice(1).toLowerCase()}{' '}
                       {business.subName.split(' ').map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(' ')}

@@ -41,13 +41,13 @@ export default function Bulk() {
 
   return (
     <div className="space-y-4">
-      <Card title="Bulk billing — ek saath sabke bills">
+      <Card title="Bulk billing — all clients at once">
         <div className="mb-4 flex items-end gap-3">
           <div>
             <span className="mb-1 block text-xs font-medium text-neutral-500">Month</span>
             <input type="month" className={inputCls} value={month} onChange={(e) => setMonth(e.target.value)} />
           </div>
-          <button className={btnPrimary} onClick={generate}>Sab bills banao</button>
+          <button className={btnPrimary} onClick={generate}>Generate all bills</button>
         </div>
         <table className="w-full text-sm">
           <thead>
@@ -72,9 +72,9 @@ export default function Bulk() {
                   </td>
                   <td className="py-2 text-xs">
                     {existing ? (
-                      <Link className="text-brand-600 font-medium hover:underline" to={`/new?client=${c.id}&month=${month}`}>Ban chuka — kholo</Link>
+                      <Link className="text-brand-600 font-medium hover:underline" to={`/new?client=${c.id}&month=${month}`}>Created — open</Link>
                     ) : done.includes(c.id) ? (
-                      <span className="text-green-600 font-medium">Ban gaya ✓</span>
+                      <span className="text-green-600 font-medium">Created</span>
                     ) : (
                       <span className="text-neutral-400">—</span>
                     )}
@@ -84,7 +84,7 @@ export default function Bulk() {
             })}
           </tbody>
         </table>
-        <p className="mt-3 text-xs text-neutral-500">Attendance khaali chhodo to us client ka bill nahi banega. Bane hue bills "Naya Bill" me khol ke fine-tune kar sakte ho.</p>
+        <p className="mt-3 text-xs text-neutral-500">Leave attendance blank to skip a client. Generated bills can be fine-tuned from the New Invoice page.</p>
       </Card>
     </div>
   )

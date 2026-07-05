@@ -17,22 +17,27 @@ export function invoiceFileBase(inv: Invoice, client: Party) {
   return safeFileName(`${inv.no}-${client.name}`)
 }
 
-const pdfOpts = {
-  margin: 0,
-  image: { type: 'jpeg' as const, quality: 0.97 },
-  html2canvas: { scale: 2.2, useCORS: true },
-  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-  pagebreak: { mode: ['css'] },
-} as const
-
+/**
+ * Render each `.a4page` inside `node` to a canvas (modern-screenshot handles
+ * Tailwind v4's oklch() colors, which html2canvas cannot parse) and assemble
+ * an A4 jsPDF document.
+ */
 export async function invoicePdfBlob(node: HTMLElement): Promise<Blob> {
-  const html2pdf = (await import('html2pdf.js')).default
-  return html2pdf().set(pdfOpts).from(node).outputPdf('blob')
+  const { domToCanvas } = await import('modern-screenshot')
+  const { jsPDF } = await import('jspdf')
+  const pages = Array.from(node.querySelectorAll<HTMLElement>('.a4page'))
+  if (pages.length === 0) throw new Error('invoice preview not found')
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
+  for (let i = 0; i < pages.length; i++) {
+    const canvas = await domToCanvas(pages[i], { scale: 2.2, backgroundColor: '#ffffff' })
+    if (i > 0) pdf.addPage('a4', 'portrait')
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 210, 297)
+  }
+  return pdf.output('blob')
 }
 
 export async function downloadInvoicePdf(node: HTMLElement, filename: string) {
-  const html2pdf = (await import('html2pdf.js')).default
-  await html2pdf().set({ ...pdfOpts, filename }).from(node).save()
+  download(await invoicePdfBlob(node), filename)
 }
 
 /** Web Share API with PDF file; falls back to download + WhatsApp Web text. */

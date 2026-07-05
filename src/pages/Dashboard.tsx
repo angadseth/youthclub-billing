@@ -76,7 +76,7 @@ export default function Dashboard() {
       byClient,
       paidPending: [
         { name: 'Paid', value: paidAmt },
-        { name: 'Baaki', value: pendingAmt },
+        { name: 'Due', value: pendingAmt },
       ],
     }
   }, [invoices, clients, settings.columns])
@@ -95,15 +95,15 @@ export default function Dashboard() {
         <p className="text-sm text-neutral-500">
           FY {data.fy} · {clients.length} clients · {invoices.length} bills
         </p>
-        <Link to="/new" className={btnPrimary}>Naya Bill / New Invoice</Link>
+        <Link to="/new" className={btnPrimary}>New Invoice</Link>
       </div>
 
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
-        <StatTile accent label="Is month ka billing" value={inr(data.monthBilled)} sub={`${data.monthCount} / ${clients.length} bills bane`} />
-        <StatTile label="Payment baaki" value={inr(data.outstanding)} sub={`${data.unpaidCount} unpaid bills`} />
+        <StatTile accent label="This month billing" value={inr(data.monthBilled)} sub={`${data.monthCount} / ${clients.length} bills created`} />
+        <StatTile label="Payment due" value={inr(data.outstanding)} sub={`${data.unpaidCount} unpaid bills`} />
         <StatTile label={`FY ${data.fy} total`} value={inr(data.fyTotal)} />
         <StatTile label="GST collected (FY)" value={inr(Math.round(data.gstCollected))} />
-        <StatTile label="Clients" value={String(clients.length)} sub="Clients page se add/edit" />
+        <StatTile label="Clients" value={String(clients.length)} sub="Add/edit on Clients page" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -121,7 +121,7 @@ export default function Dashboard() {
 
         <Card title={`Client-wise revenue — FY ${data.fy}`}>
           {data.byClient.length === 0 ? (
-            <p className="text-sm text-neutral-500 py-16 text-center">Is FY me abhi koi bill nahi.</p>
+            <p className="text-sm text-neutral-500 py-16 text-center">No bills in this FY yet.</p>
           ) : (
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={data.byClient} layout="vertical" margin={{ top: 4, right: 40, left: 8, bottom: 0 }}>
@@ -134,9 +134,9 @@ export default function Dashboard() {
           )}
         </Card>
 
-        <Card title={`Paid vs Baaki — FY ${data.fy}`}>
+        <Card title={`Paid vs Due — FY ${data.fy}`}>
           {data.fyTotal === 0 ? (
-            <p className="text-sm text-neutral-500 py-16 text-center">Data aayega jaise hi bills banenge.</p>
+            <p className="text-sm text-neutral-500 py-16 text-center">Data appears as soon as bills are created.</p>
           ) : (
             <div className="flex items-center gap-6">
               <PieChart width={220} height={200}>
@@ -163,15 +163,15 @@ export default function Dashboard() {
           <div className="grid grid-cols-2 gap-3 text-sm">
             <Link to="/bulk" className="rounded-lg border border-neutral-200 dark:border-neutral-800 p-3 hover:border-brand-400 transition">
               <div className="font-semibold">Bulk billing</div>
-              <div className="text-xs text-neutral-500 mt-1">Ek saath sabki attendance bharo, saare bills ban jayenge</div>
+              <div className="text-xs text-neutral-500 mt-1">Fill attendance for everyone at once and generate all bills</div>
             </Link>
             <Link to="/register" className="rounded-lg border border-neutral-200 dark:border-neutral-800 p-3 hover:border-brand-400 transition">
               <div className="font-semibold">Register + GST export</div>
-              <div className="text-xs text-neutral-500 mt-1">Saare bills, paid/baaki status, Excel me GST summary</div>
+              <div className="text-xs text-neutral-500 mt-1">All bills, paid/due status, GST summary in Excel</div>
             </Link>
             <Link to="/clients" className="rounded-lg border border-neutral-200 dark:border-neutral-800 p-3 hover:border-brand-400 transition">
               <div className="font-semibold">Clients</div>
-              <div className="text-xs text-neutral-500 mt-1">10 parties ke rates/address — ek baar set, hamesha auto</div>
+              <div className="text-xs text-neutral-500 mt-1">Party rates and addresses — set once, auto-filled forever</div>
             </Link>
             <Link to="/settings" className="rounded-lg border border-neutral-200 dark:border-neutral-800 p-3 hover:border-brand-400 transition">
               <div className="font-semibold">Settings</div>

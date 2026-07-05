@@ -38,7 +38,8 @@ body {
 @media print {
   body * { visibility: hidden; }
   #print-root, #print-root * { visibility: visible; }
-  #print-root { position: absolute; inset: 0; }
+  /* !important beats the inline off-screen positioning used on screen */
+  #print-root { position: absolute !important; left: 0 !important; top: 0 !important; width: 210mm !important; }
   .a4page { box-shadow: none; margin: 0; page-break-after: always; }
   .a4page:last-child { page-break-after: auto; }
   @page { size: A4; margin: 0; }

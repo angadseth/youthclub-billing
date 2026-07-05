@@ -11,7 +11,7 @@ const blank = (): Party => ({
   address: [],
   dueDays: 30,
   defaultRows: [
-    { sno: 1, description: '', sasCode: '', from: '', to: '', units: 1, basicSalary: 0, days: 0, ratePerDay: 0, attend: 0, holidays: 0, totalDays: 0 },
+    { sno: 1, description: '', sasCode: '', from: '', to: '', units: 1, basicSalary: 0, days: 0, attend: 0, holidays: 0 },
   ],
 })
 
@@ -31,29 +31,36 @@ export default function Clients() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button className={btnPrimary} onClick={() => setEditing(blank())}>+ Naya Client</button>
+        <button className={btnPrimary} onClick={() => setEditing(blank())}>+ New Client</button>
       </div>
 
       {editing && (
-        <Card title={editing.name ? `Edit — ${editing.name}` : 'Naya Client'}>
+        <Card title={editing.name ? `Edit — ${editing.name}` : 'New Client'}>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Naam"><input className={inputCls} value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></Field>
+            <Field label="Name"><input className={inputCls} value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></Field>
             <Field label="GST (optional)"><input className={inputCls} value={editing.gst ?? ''} onChange={(e) => setEditing({ ...editing, gst: e.target.value })} /></Field>
             <Field label="CL Code"><input className={inputCls} value={editing.clCode ?? ''} onChange={(e) => setEditing({ ...editing, clCode: e.target.value })} /></Field>
             <Field label="Payment due days"><input type="number" className={inputCls} value={editing.dueDays} onChange={(e) => setEditing({ ...editing, dueDays: Number(e.target.value) || 30 })} /></Field>
             <Field label="State"><input className={inputCls} value={editing.stateName ?? ''} onChange={(e) => setEditing({ ...editing, stateName: e.target.value })} /></Field>
             <Field label="State Code"><input className={inputCls} value={editing.stateCode ?? ''} onChange={(e) => setEditing({ ...editing, stateCode: e.target.value })} /></Field>
             <div className="sm:col-span-2">
-              <Field label="Address (har line alag)">
+              <Field label="Address (one line per row)">
                 <textarea className={inputCls} rows={3} value={editing.address.join('\n')} onChange={(e) => setEditing({ ...editing, address: e.target.value.split('\n') })} />
               </Field>
             </div>
           </div>
 
           <div className="mt-4">
-            <div className="mb-2 text-xs font-semibold text-neutral-500">Default service rows (naya bill inhi se shuru hota hai)</div>
+            <div className="mb-2 text-xs font-semibold text-neutral-500">Default service rows (every new bill starts from these)</div>
             {editing.defaultRows.map((row, ri) => (
-              <div key={ri} className="mb-2 grid grid-cols-2 sm:grid-cols-4 gap-2 rounded-lg border border-neutral-200 dark:border-neutral-800 p-2">
+              <div key={ri} className="mb-2 rounded-lg border border-neutral-200 dark:border-neutral-800 p-2">
+                <div className="mb-1 flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-neutral-400">Service {ri + 1}</span>
+                  {editing.defaultRows.length > 1 && (
+                    <button className="text-[11px] text-red-500 hover:underline cursor-pointer" onClick={() => setEditing({ ...editing, defaultRows: editing.defaultRows.filter((_, j) => j !== ri) })}>Remove</button>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {settings.columns.filter((c) => !c.formula && !['sno', 'from', 'to', 'attend', 'holidays', 'totalDays'].includes(c.key)).map((c) => (
                   <Field key={c.key} label={c.label}>
                     <input
@@ -67,8 +74,12 @@ export default function Clients() {
                     />
                   </Field>
                 ))}
+                </div>
               </div>
             ))}
+            <button className="text-xs font-semibold text-brand-600 hover:underline cursor-pointer" onClick={() => setEditing({ ...editing, defaultRows: [...editing.defaultRows, { ...editing.defaultRows[editing.defaultRows.length - 1] }] })}>
+              + Add service row
+            </button>
           </div>
 
           <div className="mt-4 flex gap-2">
@@ -95,21 +106,21 @@ export default function Clients() {
               <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                 <div><div className="text-xs text-neutral-500">Billed</div><div className="font-bold tabular-nums">₹{fmtMoneyInt(l.billed)}</div></div>
                 <div><div className="text-xs text-neutral-500">Paid</div><div className="font-bold tabular-nums text-green-600">₹{fmtMoneyInt(l.paid)}</div></div>
-                <div><div className="text-xs text-neutral-500">Baaki</div><div className={`font-bold tabular-nums ${l.outstanding > 0 ? 'text-red-500' : ''}`}>₹{fmtMoneyInt(l.outstanding)}</div></div>
+                <div><div className="text-xs text-neutral-500">Due</div><div className={`font-bold tabular-nums ${l.outstanding > 0 ? 'text-red-500' : ''}`}>₹{fmtMoneyInt(l.outstanding)}</div></div>
               </div>
               {ledgerFor === c.id && (
                 <div className="mt-3 border-t border-neutral-200 dark:border-neutral-800 pt-2 text-xs space-y-1">
-                  {l.list.length === 0 && <div className="text-neutral-500">Koi bill nahi abhi.</div>}
+                  {l.list.length === 0 && <div className="text-neutral-500">No bills yet.</div>}
                   {l.list.map(({ inv, t }) => (
                     <div key={inv.id} className="flex justify-between">
                       <span>{inv.no} · {inv.date}</span>
-                      <span className={`tabular-nums font-medium ${inv.status === 'PAID' ? 'text-green-600' : 'text-amber-600'}`}>₹{fmtMoneyInt(t.grandTotal)} · {inv.status === 'PAID' ? 'Paid' : 'Baaki'}</span>
+                      <span className={`tabular-nums font-medium ${inv.status === 'PAID' ? 'text-green-600' : 'text-amber-600'}`}>₹{fmtMoneyInt(t.grandTotal)} · {inv.status === 'PAID' ? 'Paid' : 'Due'}</span>
                     </div>
                   ))}
                 </div>
               )}
               <div className="mt-3">
-                <Link className="text-xs font-semibold text-brand-600 hover:underline" to={`/new?client=${c.id}`}>Naya bill banao →</Link>
+                <Link className="text-xs font-semibold text-brand-600 hover:underline" to={`/new?client=${c.id}`}>Create new bill →</Link>
               </div>
             </Card>
           )

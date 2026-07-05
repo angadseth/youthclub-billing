@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ColumnDef, Settings as TSettings, TaxMode } from '../domain/types'
 import { getState, importBackup, pullAll, saveSettings, useDB } from '../store/db'
+import { defaultColumns } from '../store/seed'
 import { flushQueue, getRepoConfig, getToken, onSyncStatus, pendingCount, setRepoConfig, setToken, type SyncStatus } from '../store/github'
 import { download } from '../export/files'
 import { Card, Field, btnGhost, btnPrimary, inputCls } from '../components/ui'
@@ -38,14 +39,14 @@ export default function SettingsPage() {
   return (
     <div className="space-y-4 max-w-4xl">
       <div className="flex items-center gap-3">
-        <button className={btnPrimary} onClick={save}>Settings save karo</button>
+        <button className={btnPrimary} onClick={save}>Save settings</button>
         {saved && <span className="text-xs font-medium text-green-600">Saved ✓</span>}
       </div>
 
       <Card title="Business profile (Billed By + header)">
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Naam"><input className={inputCls} value={s.business.name} onChange={(e) => setBiz('name', e.target.value)} /></Field>
-          <Field label="Sub-naam"><input className={inputCls} value={s.business.subName} onChange={(e) => setBiz('subName', e.target.value)} /></Field>
+          <Field label="Business name"><input className={inputCls} value={s.business.name} onChange={(e) => setBiz('name', e.target.value)} /></Field>
+          <Field label="Sub-name"><input className={inputCls} value={s.business.subName} onChange={(e) => setBiz('subName', e.target.value)} /></Field>
           <Field label="GST"><input className={inputCls} value={s.business.gst} onChange={(e) => setBiz('gst', e.target.value)} /></Field>
           <Field label="PAN"><input className={inputCls} value={s.business.pan} onChange={(e) => setBiz('pan', e.target.value)} /></Field>
           <Field label="Phone"><input className={inputCls} value={s.business.phone} onChange={(e) => setBiz('phone', e.target.value)} /></Field>
@@ -58,7 +59,7 @@ export default function SettingsPage() {
           <Field label="Account No"><input className={inputCls} value={s.business.accountNo} onChange={(e) => setBiz('accountNo', e.target.value)} /></Field>
           <Field label="IFSC"><input className={inputCls} value={s.business.ifsc} onChange={(e) => setBiz('ifsc', e.target.value)} /></Field>
           <div className="sm:col-span-2">
-            <Field label="Terms & Conditions (har line alag)">
+            <Field label="Terms & Conditions (one per line)">
               <textarea className={inputCls} rows={3} value={s.business.terms.join('\n')} onChange={(e) => setS({ ...s, business: { ...s.business, terms: e.target.value.split('\n').filter(Boolean) } })} />
             </Field>
           </div>
@@ -67,7 +68,7 @@ export default function SettingsPage() {
             <div className="flex items-center gap-3">
               {s.business.logoDataUrl && <img src={s.business.logoDataUrl} className="h-10 w-10 object-contain" alt="logo" />}
               <button className={btnGhost} onClick={() => logoInput.current?.click()}>Upload</button>
-              {s.business.logoDataUrl && <button className={btnGhost} onClick={() => setBiz('logoDataUrl', '')}>Hatao</button>}
+              {s.business.logoDataUrl && <button className={btnGhost} onClick={() => setBiz('logoDataUrl', '')}>Remove</button>}
               <input ref={logoInput} type="file" accept="image/*" className="hidden" onChange={(e) => {
                 const f = e.target.files?.[0]
                 if (!f) return
@@ -93,11 +94,11 @@ export default function SettingsPage() {
               <option value="NONE">No tax</option>
             </select>
           </Field>
-          <Field label="GST rate % (total)"><input type="number" className={inputCls} value={s.taxRate} onChange={(e) => setS({ ...s, taxRate: Number(e.target.value) || 0 })} /></Field>
-          <Field label="UPI ID (QR ke liye)"><input className={inputCls} value={s.business.upiId ?? ''} onChange={(e) => setBiz('upiId', e.target.value)} /></Field>
+          <Field label="GST % (default, total)"><input type="number" className={inputCls} value={s.taxRate} onChange={(e) => setS({ ...s, taxRate: Number(e.target.value) || 0 })} /></Field>
+          <Field label="UPI ID (for QR)"><input className={inputCls} value={s.business.upiId ?? ''} onChange={(e) => setBiz('upiId', e.target.value)} /></Field>
           <label className="flex items-end gap-2 pb-2 text-sm cursor-pointer">
             <input type="checkbox" checked={s.showUpiQr} onChange={(e) => setS({ ...s, showUpiQr: e.target.checked })} />
-            Invoice pe UPI QR dikhao
+            Show UPI QR on invoice
           </label>
         </div>
       </Card>
@@ -131,9 +132,17 @@ export default function SettingsPage() {
           </table>
         </div>
         <button className={btnGhost + ' mt-2'} onClick={() => setS({ ...s, columns: [...s.columns, { key: 'col' + (s.columns.length + 1), label: 'New Column', width: 6, type: 'number' }] })}>
-          + Column add karo
+          + Add column
         </button>
-        <p className="mt-2 text-xs text-neutral-500">Column add/remove karne pe invoice layout apne aap adjust hota hai (widths + font size auto).</p>
+        <button className={btnGhost + ' mt-2 ml-2'} onClick={() => setS({ ...s, columns: defaultColumns })}>
+          Reset columns to default
+        </button>
+        <div className="mt-3 rounded-lg bg-neutral-50 dark:bg-neutral-800/50 p-3 text-xs text-neutral-600 dark:text-neutral-300 space-y-1">
+          <div className="font-semibold">How formulas work</div>
+          <div>Use column keys as variables with + - * / and parentheses. Available keys: <span className="font-mono">{s.columns.map((c) => c.key).join(', ')}</span></div>
+          <div>Defaults: <span className="font-mono">ratePerDay = basicSalary / days</span> · <span className="font-mono">totalDays = attend + holidays</span> · <span className="font-mono">amount = ratePerDay * totalDays</span></div>
+          <div>Columns with a formula are calculated automatically — they never appear as inputs on the New Invoice form. Adding or removing columns auto-adjusts the invoice layout (widths + font size).</div>
+        </div>
       </Card>
 
       <Card title="GitHub sync (data private repo me save hota hai)">
@@ -147,31 +156,31 @@ export default function SettingsPage() {
             Connect / Save
           </button>
           <button className={btnGhost} disabled={pulling === 'busy'} onClick={async () => { setPulling('busy'); try { await pullAll(); setPulling('done') } catch { setPulling('fail') } }}>
-            {pulling === 'busy' ? 'La raha hu…' : 'Pull (repo se load karo)'}
+            {pulling === 'busy' ? 'Loading…' : 'Pull from repo'}
           </button>
           <span className="text-xs font-medium">
-            {sync.state === 'off' && <span className="text-neutral-400">Sync off — token set karo</span>}
-            {sync.state === 'synced' && <span className="text-green-600">Sab synced ✓</span>}
-            {sync.state === 'pending' && <span className="text-amber-600">{sync.count} file(s) pending — net aate hi push honge</span>}
+            {sync.state === 'off' && <span className="text-neutral-400">Sync off — set a token</span>}
+            {sync.state === 'synced' && <span className="text-green-600">All synced ✓</span>}
+            {sync.state === 'pending' && <span className="text-amber-600">{sync.count} file(s) pending — will push when online</span>}
             {sync.state === 'error' && <span className="text-red-500">{sync.message}</span>}
           </span>
-          {pulling === 'done' && <span className="text-xs text-green-600">Repo se data load ho gaya ✓</span>}
-          {pulling === 'fail' && <span className="text-xs text-red-500">Pull fail — token/repo check karo</span>}
+          {pulling === 'done' && <span className="text-xs text-green-600">Data loaded from repo ✓</span>}
+          {pulling === 'fail' && <span className="text-xs text-red-500">Pull failed — check token/repo</span>}
         </div>
-        <p className="mt-2 text-xs text-neutral-500">Pending: {pendingCount()} · Har save ek git commit hai = permanent history, kuch bhi kabhi khota nahi.</p>
+        <p className="mt-2 text-xs text-neutral-500">Pending: {pendingCount()} · Every save is a git commit — permanent history, nothing is ever lost.</p>
       </Card>
 
       <Card title="Backup">
         <div className="flex flex-wrap gap-2">
           <button className={btnGhost} onClick={() => download(new Blob([JSON.stringify(getState(), null, 2)], { type: 'application/json' }), `youthclub-backup-${new Date().toISOString().slice(0, 10)}.json`)}>
-            Full backup download (JSON)
+            Download full backup (JSON)
           </button>
-          <button className={btnGhost} onClick={() => backupInput.current?.click()}>Backup import</button>
+          <button className={btnGhost} onClick={() => backupInput.current?.click()}>Import backup</button>
           <input ref={backupInput} type="file" accept=".json" className="hidden" onChange={(e) => {
             const f = e.target.files?.[0]
             if (!f) return
             const r = new FileReader()
-            r.onload = () => { try { importBackup(JSON.parse(String(r.result))) } catch { alert('File sahi nahi hai') } }
+            r.onload = () => { try { importBackup(JSON.parse(String(r.result))) } catch { alert('Invalid backup file') } }
             r.readAsText(f)
           }} />
         </div>

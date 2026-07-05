@@ -31,7 +31,7 @@ export default function Register() {
         <div>
           <span className="mb-1 block text-xs font-medium text-neutral-500">Client</span>
           <select className={inputCls + ' min-w-48'} value={clientF} onChange={(e) => setClientF(e.target.value)}>
-            <option value="">Sab clients</option>
+            <option value="">All clients</option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
@@ -44,7 +44,7 @@ export default function Register() {
 
       <Card title={`Bills — ${list.length}`}>
         {list.length === 0 ? (
-          <p className="text-sm text-neutral-500">Abhi koi bill nahi. "Naya Bill" se pehla invoice banao.</p>
+          <p className="text-sm text-neutral-500">No bills yet. Create your first invoice from "New Invoice".</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -76,7 +76,7 @@ export default function Register() {
                               ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
                               : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
                           }`}
-                          title="Click karke status badlo"
+                          title="Click to toggle status"
                           onClick={() =>
                             saveInvoice({
                               ...inv,
@@ -85,13 +85,13 @@ export default function Register() {
                             })
                           }
                         >
-                          {inv.status === 'PAID' ? 'Paid' : 'Baaki'}
+                          {inv.status === 'PAID' ? 'Paid' : 'Due'}
                         </button>
-                        {od > 0 && <span className="ml-2 text-xs font-medium text-red-500">{od} din se pending</span>}
+                        {od > 0 && <span className="ml-2 text-xs font-medium text-red-500">overdue {od}d</span>}
                       </td>
                       <td className="py-2 text-right">
                         <Link className="text-xs font-medium text-brand-600 hover:underline" to={`/new?client=${inv.clientId}&month=${inv.periodTo.slice(0, 7)}`}>
-                          Kholo
+                          Open
                         </Link>
                       </td>
                     </tr>

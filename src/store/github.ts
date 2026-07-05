@@ -154,7 +154,7 @@ export async function flushQueue(): Promise<void> {
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e)
         if (msg === 'auth') {
-          emit({ state: 'error', message: 'Token galat ya expire hai — Angad ko call karo.' })
+          emit({ state: 'error', message: 'Token is invalid or expired — call Angad.' })
         } else {
           emit({ state: 'pending', count: q.length })
         }

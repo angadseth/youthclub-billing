@@ -9,11 +9,11 @@ export const defaultColumns: ColumnDef[] = [
   { key: 'units', label: 'Units', width: 5, type: 'number', align: 'center', sumInTotal: true },
   { key: 'basicSalary', label: 'Basic Salary', width: 7, type: 'number', align: 'center' },
   { key: 'days', label: 'Days', width: 5, type: 'number', align: 'center' },
-  { key: 'ratePerDay', label: 'Rate/Day (₹)', width: 6, type: 'number', align: 'center' },
+  { key: 'ratePerDay', label: 'Rate/Day (₹)', width: 6, type: 'number', align: 'center', formula: 'basicSalary / days' },
   { key: 'attend', label: 'Attend.', width: 5, type: 'number', align: 'center', sumInTotal: true },
   { key: 'holidays', label: 'Holidays', width: 5, type: 'number', align: 'center' },
-  { key: 'totalDays', label: 'Total Days', width: 5, type: 'number', align: 'center', sumInTotal: true },
-  { key: 'amount', label: 'Amount (₹)', width: 8, type: 'number', align: 'right', formula: 'ratePerDay * attend', sumInTotal: true },
+  { key: 'totalDays', label: 'Total Days', width: 5, type: 'number', align: 'center', formula: 'attend + holidays', sumInTotal: true },
+  { key: 'amount', label: 'Amount (₹)', width: 8, type: 'number', align: 'right', formula: 'ratePerDay * totalDays', sumInTotal: true },
 ]
 
 export const defaultSettings: Settings = {
@@ -68,12 +68,10 @@ export const seedClients: Party[] = [
         from: '',
         to: '',
         units: 1,
-        basicSalary: 23,
+        basicSalary: 1288,
         days: 23,
-        ratePerDay: 56,
         attend: 0,
         holidays: 0,
-        totalDays: 0,
       },
     ],
   },

@@ -14,22 +14,30 @@ const columns: ColumnDef[] = [
   { key: 'units', label: 'Units', width: 5, type: 'number', sumInTotal: true },
   { key: 'basicSalary', label: 'Basic Salary', width: 7, type: 'number' },
   { key: 'days', label: 'Days', width: 5, type: 'number' },
-  { key: 'ratePerDay', label: 'Rate/Day (₹)', width: 6, type: 'number' },
+  { key: 'ratePerDay', label: 'Rate/Day (₹)', width: 6, type: 'number', formula: 'basicSalary / days' },
   { key: 'attend', label: 'Attend.', width: 5, type: 'number', sumInTotal: true },
   { key: 'holidays', label: 'Holidays', width: 5, type: 'number' },
-  { key: 'totalDays', label: 'Total Days', width: 5, type: 'number', sumInTotal: true },
-  { key: 'amount', label: 'Amount (₹)', width: 8, type: 'number', formula: 'ratePerDay * attend', sumInTotal: true },
+  { key: 'totalDays', label: 'Total Days', width: 5, type: 'number', formula: 'attend + holidays', sumInTotal: true },
+  { key: 'amount', label: 'Amount (₹)', width: 8, type: 'number', formula: 'ratePerDay * totalDays', sumInTotal: true },
 ]
 
 const refRow = {
   sno: 1, description: 'Housekeeping Staff', sasCode: '998519',
   from: '2026-05-01', to: '2026-05-31',
-  units: 1, basicSalary: 23, days: 23, ratePerDay: 56, attend: 27, holidays: 0, totalDays: 2,
+  units: 1, basicSalary: 1288, days: 23, attend: 27, holidays: 0,
 }
 
 describe('calc — reference invoice (YouthClub_Invoice_v2)', () => {
-  it('computes row amount from formula', () => {
-    expect(computeRow(refRow, columns).amount).toBe(1512)
+  it('computes the formula chain: rate = basic/days, totalDays = attend+holidays, amount = rate*totalDays', () => {
+    const r = computeRow(refRow, columns)
+    expect(r.ratePerDay).toBe(56)
+    expect(r.totalDays).toBe(27)
+    expect(r.amount).toBe(1512)
+  })
+  it('0% GST prints no tax lines', () => {
+    const t = computeTotals({ rows: [refRow], taxMode: 'CGST_SGST', taxRate: 0, feesPct: 10 }, columns)
+    expect(t.taxLines).toEqual([])
+    expect(t.grandTotal).toBe(1663)
   })
   it('matches every total on the reference PDF', () => {
     const t = computeTotals({ rows: [refRow], taxMode: 'CGST_SGST', taxRate: 18, feesPct: 10 }, columns)
@@ -44,6 +52,7 @@ describe('calc — reference invoice (YouthClub_Invoice_v2)', () => {
     expect(t.roundOff).toBe(0.42)
     expect(t.columnTotals.amount).toBe(1512)
     expect(t.columnTotals.attend).toBe(27)
+    expect(t.columnTotals.totalDays).toBe(27)
   })
   it('NONE tax mode → no tax lines, grand = rounded subtotal', () => {
     const t = computeTotals({ rows: [refRow], taxMode: 'NONE', taxRate: 18, feesPct: 10 }, columns)
@@ -97,5 +106,10 @@ describe('splitRowsIntoPages', () => {
   it('overflows to continuation pages', () => {
     expect(splitRowsIntoPages(Array(12).fill(0), 5, 8).map((p) => p.length)).toEqual([5, 7])
     expect(splitRowsIntoPages(Array(25).fill(0), 5, 8).map((p) => p.length)).toEqual([5, 8, 8, 4])
+  })
+  it('pushes totals to their own page when the last page is too full', () => {
+    expect(splitRowsIntoPages(Array(12).fill(0), 12, 16, 8).map((p) => p.length)).toEqual([12, 0])
+    expect(splitRowsIntoPages(Array(6).fill(0), 12, 16, 8).map((p) => p.length)).toEqual([6])
+    expect(splitRowsIntoPages(Array(20).fill(0), 12, 16, 8).map((p) => p.length)).toEqual([12, 8])
   })
 })
