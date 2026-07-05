@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-brand-50: #fdf6ee;
+  --color-brand-100: #f8e8d4;
+  --color-brand-200: #f0d0a8;
+  --color-brand-300: #e6b273;
+  --color-brand-400: #db923f;
+  --color-brand-500: #c87b2a;
+  --color-brand-600: #b06420;
+  --color-brand-700: #8f4d1c;
+  --color-brand-800: #743e1d;
+  --color-brand-900: #5f341b;
+  --color-ink-900: #1f2430;
+  --color-ink-800: #2a3040;
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+html { font-family: var(--font-sans); }
+
+body {
+  @apply bg-neutral-100 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 antialiased;
+}
+
+/* A4 invoice pages — always "paper", independent of app theme */
+.a4page {
+  width: 210mm;
+  min-height: 297mm;
+  background: #ffffff;
+  color: #111111;
+  position: relative;
+  box-shadow: 0 2px 16px rgb(0 0 0 / 0.18);
+  margin: 0 auto;
+}
+
+@media print {
+  body * { visibility: hidden; }
+  #print-root, #print-root * { visibility: visible; }
+  #print-root { position: absolute; inset: 0; }
+  .a4page { box-shadow: none; margin: 0; page-break-after: always; }
+  .a4page:last-child { page-break-after: auto; }
+  @page { size: A4; margin: 0; }
+}
